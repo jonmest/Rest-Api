@@ -89,6 +89,10 @@ exports.getPost = asyncHandler(async (req, res, next) => {
 })
 
 exports.createPost = asyncHandler(async (req, res, next) => {
+    // Add user to req.body
+    req.body.author = req.user.id
+
+        
     const post = await Post.create(req.body)
     res.status(201).json({
         success: true,
@@ -97,16 +101,24 @@ exports.createPost = asyncHandler(async (req, res, next) => {
 })
 
 exports.updatePost = asyncHandler(async (req, res, next) => {
-    const post = await Post.findByIdAndUpdate({
+    let post = await Post.findOne({
         slug: req.params.titleSlug
-    }, req.body,  {
-        new: true,
-        runValidators: true
-      })
+    })
 
       if (!post) {
         new ErrorResponse(`Post not found with slug ${req.params.titleSlug}`, 404);
       }
+
+      if (post.author.toString() !== req.user.id && req.user.role !== 'admin') {
+          return next(new ErrorResponse(`Not authorized to update`, 401))
+      }
+
+      bootcamp = await Post.findOneAndUpdate({
+        slug: req.params.titleSlug
+        }, req.body, {
+        new: true,
+        runValidators: true
+      })
       res.status(200).json({ success: true, data: post });
 })
 

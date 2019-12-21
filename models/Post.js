@@ -45,6 +45,7 @@ PostSchema.pre("save", function(next) {
   next();
 });
 
+
 // // CASCADE delete coursed when post deleted
 // PostSchema.pre('remove', async function (next) {
 //   await this.model('Comment').deleteMany({ post: this._id })

@@ -18,7 +18,7 @@ router.route('/')
 router
     .route('/:titleSlug')
     .get( protect, authorize('publisher'), getPost)
-    .put( protect, authorize('publisher'), updatePost)
+    .put(protect, authorize('publisher'), updatePost)
     .delete( protect, authorize('publisher'), deletePost)
 
 module.exports = router
