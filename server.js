@@ -4,6 +4,9 @@ const morgan = require("morgan");
 const connectDB = require("./config/db.js");
 const errorHandler = require("./middleware/error.js");
 
+const { protect, authorize } = require('./middleware/auth')
+
+
 // Load env vars
 dotenv.config({ path: "./config/config.env" });
 
@@ -11,7 +14,9 @@ dotenv.config({ path: "./config/config.env" });
 connectDB();
 
 // Route files
-const bootcamps = require("./routes/bootcamps.js");
+const posts = require('./routes/posts')
+const admin = require('./routes/admin')
+const auth = require('./routes/auth')
 
 const app = express();
 
@@ -22,7 +27,9 @@ if (process.env.NODE_ENV === "development") {
   app.use(morgan("combined"));
 }
 // Mount routers
-app.use("/api/v1/bootcamps", bootcamps);
+app.use('/api/v1/posts', posts)
+app.use('/api/v1/admin', admin)
+app.use('/auth', auth)
 
 app.use(errorHandler);
 

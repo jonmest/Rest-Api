@@ -36,3 +36,10 @@ test("Get 404 with nonexisting ID", async () => {
     expect(e.response.status).toBe(404);
   }
 });
+
+test("Can find bootcamp within radius", async () => {
+  const url = `http://localhost:${PORT}/api/v1/bootcamps/radius/02118/10`
+  const res = await axios.get(url)
+  expect(res.status).toBe(200)
+  expect(res.data.data.length).not.toBe(0)
+})
