@@ -3,7 +3,7 @@ const dotenv = require("dotenv");
 const morgan = require("morgan");
 const connectDB = require("./config/db.js");
 const errorHandler = require("./middleware/error.js");
-
+const cookieParser = require('cookie-parser')
 const { protect, authorize } = require('./middleware/auth')
 
 
@@ -20,6 +20,9 @@ const auth = require('./routes/auth')
 
 const app = express();
 
+// Cookie parser
+app.use(cookieParser())
+
 // Body parser
 app.use(express.json());
 
@@ -29,9 +32,10 @@ if (process.env.NODE_ENV === "development") {
 // Mount routers
 app.use('/api/v1/posts', posts)
 app.use('/api/v1/admin', admin)
-app.use('/auth', auth)
+app.use('/api/v1/auth', auth)
 
 app.use(errorHandler);
+
 
 const PORT = process.env.PORT;
 
