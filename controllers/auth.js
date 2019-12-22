@@ -6,13 +6,11 @@ const crypto = require('crypto')
 
 /**
  * @desc    Register user
- * @route   POST /auth/register
+ * @route   POST /api/v1/auth/register
  * @access  Public
  */
-
 exports.register = asyncHandler( async (req, res, next) => {
     const { name, email, password, role } = req.body
-
 
     // Create user
     const user = await User.create({
@@ -29,10 +27,9 @@ exports.register = asyncHandler( async (req, res, next) => {
 
 /**
  * @desc    Login user
- * @route   POST /auth/login
+ * @route   POST /api/v1/auth/login
  * @access  Public
  */
-
 exports.login = asyncHandler( async (req, res, next) => {
     const { email, password } = req.body
 
@@ -60,27 +57,9 @@ exports.login = asyncHandler( async (req, res, next) => {
     sendTokenResponse(user, 200, res)
 })
 
-// get token from model create cookie send response
-const sendTokenResponse = (user, statusCode, res) => {
-        // Create token
-        const token = user.getSignedJwtToken()
-        const options = {
-            expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRE * 24 * 60 * 60 * 1000),
-            httpOnly: true
-        }
-
-        res
-        .status(statusCode)
-        .cookie('token', token, options)
-        .json({
-            success: true,
-            token
-        })
-}
-
 /**
  * @desc    Get current logged in user
- * @route   POST /auth/me
+ * @route   GET /api/v1/auth/me
  * @access  Private
  */
 exports.getMe = asyncHandler(async (req, res, next) => {
@@ -92,11 +71,12 @@ exports.getMe = asyncHandler(async (req, res, next) => {
 })
 
 /**
- * @desc    Log user out clear cookie
- * @route   GET /auth/logout
+ * @desc    Log user out and clear cookie
+ * @route   GET /api/v1/auth/logout
  * @access  Private
  */
 exports.logout = asyncHandler(async (req, res, next) => {
+    // Set token cookie to none, and expire it soon
     res.cookie('token', 'none', {
         expires: new Date(Date.now() + 10 * 1000),
         httpOnly: true
@@ -108,11 +88,17 @@ exports.logout = asyncHandler(async (req, res, next) => {
 })
 
 /**
- * @desc    Forgot password
- * @route   POST /auth/forgotpassword
+ * @desc    Forgot password, called when user wants reset token to email
+ * @route   POST /api/v1/auth/forgotpassword
  * @access  Public
  */
 exports.forgotPassword = asyncHandler(async (req, res, next) => {
+
+    /**
+     * When user forgets password, they post their email.
+     */
+
+    // Check if user with email exists
     const user = await User.findOne({
         email: req.body.email
     })
@@ -121,14 +107,14 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
         return next(new ErrorResponse('There is no user with that email', 404))
     }
 
-    // Get reset token
+    // Set reset token and expiry on the user
     const resetToken = user.getResetPasswordToken()
     await user.save({ validateBeforeSave: false })
 
     // Create reset URL
     const resetUrl = `${req.protocol}://${req.get('host')}/api/v1/auth/resetpassword/${resetToken}`
-
-    const message = `Make PUT request to: \n\n ${resetUrl}`
+    
+    const message = `Someone has requested a new password for your account. If that was you, please make a PUT request to: \n\n ${resetUrl}`
 
     try {
         await sendEmail({
@@ -154,15 +140,23 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
 
 /**
  * @desc    Reset password
- * @route   PUT /auth/resetpassword/:resettoken
+ * @route   PUT /api/v1/auth/resetpassword/:resettoken
  * @access  Public
  */
 exports.resetPassword = asyncHandler(async (req, res, next) => {
+    /**
+     * Hash the client's token in the same way
+     * the user's DB token was hashed
+     */
     const resetPasswordToken = crypto
         .createHash('sha256')
         .update(req.params.resettoken)
         .digest('hex')
-     
+    
+    /**
+     * Check if user exists with that token,
+     * and the token hasn't expired
+     */
     const user = await User.findOne({
         resetPasswordToken,
         resetPasswordExpire: { $gt: Date.now() }
@@ -179,5 +173,28 @@ exports.resetPassword = asyncHandler(async (req, res, next) => {
     await user.save()
 
     sendTokenResponse(user, 200, res)
-
 })
+
+// 
+/**
+ * Get token from model, create cookie and send response
+ * @param {User}
+ * @param {number}
+ * @param {Response}
+ */
+function sendTokenResponse (user, statusCode, res) {
+    // Create token
+    const token = user.getSignedJwtToken()
+    const options = {
+        expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRE * 24 * 60 * 60 * 1000),
+        httpOnly: true
+    }
+
+    res
+    .status(statusCode)
+    .cookie('token', token, options)
+    .json({
+        success: true,
+        token
+    })
+}

@@ -2,6 +2,9 @@ const Post = require('../models/Post')
 const ErrorResponse = require('../utils/errorResponse')
 const asyncHandler = require("../middleware/async.js");
 
+// @desc      Get all PUBLISHED posts
+// @route     GET /api/v1/posts
+// @access    Public
 exports.getPosts = asyncHandler(async (req, res, next) => {
     let query
 
@@ -74,8 +77,11 @@ if (req.query.sort) {
 
 })
 
+// @desc      Get single PUBLISHED post
+// @route     GET /api/v1/posts/:titleSlug
+// @access    Public
 exports.getPost = asyncHandler(async (req, res, next) => {
-    const post = await Post.find({
+    const post = await Post.findOne({
         slug: req.params.titleSlug
     })
 
@@ -84,8 +90,7 @@ exports.getPost = asyncHandler(async (req, res, next) => {
             new ErrorResponse('Post not found with this slug', 404)
         )
     }
-
-    if (!post.published) {
+    if (post.published === false) {
       return next(
         new ErrorResponse('Post not publicly available', 403)
       )
@@ -95,44 +100,4 @@ exports.getPost = asyncHandler(async (req, res, next) => {
         success: true,
         data: post
     })
-})
-
-exports.createPost = asyncHandler(async (req, res, next) => {
-
-  const post = await Post.create(req.body)
-    res.status(201).json({
-        success: true,
-        data: post
-    })
-})
-
-exports.updatePost = asyncHandler(async (req, res, next) => {
-    const post = await Post.findByIdAndUpdate({
-        slug: req.params.titleSlug
-    }, req.body,  {
-        new: true,
-        runValidators: true
-      })
-
-      if (!post) {
-        new ErrorResponse(`Post not found with slug ${req.params.titleSlug}`, 404);
-      }
-      res.status(200).json({ success: true, data: post });
-})
-
-exports.deletePost = asyncHandler(async (req, res, next) => {
-  console.log(req.params)
-  const post = await Post.findOne({ slug: req.params.titleSlug })
-
-  if (!post) {
-    new ErrorResponse('Could not find post with title', 404)
-  }
-
-  console.log(post)
-
-  post.remove()
-  res.status(200).json({
-    success: true,
-    data: {}
-  })
 })

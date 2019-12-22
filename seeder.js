@@ -1,5 +1,8 @@
-const fs = require("fs");
+/**
+ * Program to populate DB with posts automatically
+ */
 
+const fs = require("fs");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 

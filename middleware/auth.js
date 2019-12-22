@@ -4,7 +4,6 @@ const ErrorResponse = require('../utils/errorResponse')
 const User = require('../models/User')
 
 
-
 // Protect routes
 exports.protect = asyncHandler(async (req, res, next) => {
     let token;
@@ -38,6 +37,11 @@ exports.protect = asyncHandler(async (req, res, next) => {
   });
 
 
+/**
+ * Check if role is authorized for access
+ * @param {string[]} roles
+ * @returns
+ */
 exports.authorize = (...roles) => {
     return (req, res, next) => {
         if (!roles.includes(req.user.role)) {

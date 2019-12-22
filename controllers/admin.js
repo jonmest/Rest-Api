@@ -2,6 +2,10 @@ const Post = require('../models/Post')
 const ErrorResponse = require('../utils/errorResponse')
 const asyncHandler = require("../middleware/async.js")
 
+
+// @desc      Get all posts
+// @route     GET /api/v1/admin
+// @access    Private
 exports.getPosts = asyncHandler(async (req, res, next) => {
     let query
 
@@ -71,6 +75,9 @@ if (req.query.sort) {
 
 })
 
+// @desc      Get single post
+// @route     GET /api/v1/admin/:titleSlug
+// @access    Private
 exports.getPost = asyncHandler(async (req, res, next) => {
     const post = await Post.find({
         slug: req.params.titleSlug
@@ -88,6 +95,10 @@ exports.getPost = asyncHandler(async (req, res, next) => {
     })
 })
 
+
+// @desc      Create new post
+// @route     POST /api/v1/admin
+// @access    Private
 exports.createPost = asyncHandler(async (req, res, next) => {
     // Add user to req.body
     req.body.author = req.user.id
@@ -100,6 +111,9 @@ exports.createPost = asyncHandler(async (req, res, next) => {
     })
 })
 
+// @desc      Update post
+// @route     PUT /api/v1/admin/:titleSlug
+// @access    Private
 exports.updatePost = asyncHandler(async (req, res, next) => {
     let post = await Post.findOne({
         slug: req.params.titleSlug
@@ -122,6 +136,10 @@ exports.updatePost = asyncHandler(async (req, res, next) => {
       res.status(200).json({ success: true, data: post });
 })
 
+
+// @desc      Delete post
+// @route     DELETE /api/v1/admin/:titleSlug
+// @access    Private
 exports.deletePost = asyncHandler(async (req, res, next) => {
   const post = await Post.findOne({ slug: req.params.titleSlug })
 
