@@ -17,6 +17,7 @@ const helmet = require('helmet')
 const xssClean = require('xss-clean')
 const rateLimit = require('express-rate-limit')
 const hpp = require('hpp')
+const cors = require('cors')
 
 // Load env vars
 dotenv.config({ path: "./config/config.env" });
@@ -47,6 +48,9 @@ app.use(mongoSanitize())
 app.use(helmet())
 // Prevent XSS attacks
 app.use(xssClean())
+
+// Allow CORS
+app.use(cors())
 
 // Rate limit
 const limiter = rateLimit({
